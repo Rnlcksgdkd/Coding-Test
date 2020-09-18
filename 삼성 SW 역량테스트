@@ -1,0 +1,103 @@
+# 13460. 구슬 탈출 2
+
+# 입력부
+N,M = map(int, input().split())
+Arr = [ list(map(str,input().split()))  for __ in range(N)]
+
+Red = []
+Blue = []
+Hole = []
+
+# 레드 블루 구멍 좌표
+for x in range(N):
+    for y in range(M):
+        if Arr[x][0][y] == "R":
+            Red  = [x,y]
+        elif Arr[x][0][y] == "B":
+            Blue = [x,y]
+        elif Arr[x][0][y] == "O":
+            Hole = [x,y]  
+# 액션 [0,1,2,3] = [위 , 오른 , 아래 , 왼]    
+action_dx = [-1,0,1,0]
+action_dy = [0,1,0,-1]
+flag = 0
+
+# 액션 함수
+def action(idx , red_blue):    
+    Red = red_blue[0] 
+    Blue = red_blue[1] 
+    r_x = Red[0] ;  r_y = Red[1]
+    b_x = Blue[0]; b_y = Blue[1]
+    red_flag = 0; blue_flag = 0
+    
+    # 한칸 한칸 움직인다고 가정
+    while(not red_flag or not blue_flag):   
+        # 빨간 공 움직인다
+        if not red_flag:      
+            nr_x = r_x + action_dx[idx]
+            nr_y = r_y + action_dy[idx]
+            # 제한범위 이탈
+            if nr_x < 0 or nr_x > N - 1 or nr_y < 0  or nr_y > M - 1:
+                red_flag = 1
+            # 벽 만나는경우   
+            elif Arr[nr_x][0][nr_y] == "#":
+                red_flag = 1
+        # 파란 공 움직인다
+        if not blue_flag:
+            nb_x = b_x + action_dx[idx]
+            nb_y = b_y + action_dy[idx]
+            # 제한범위 이탈
+            if nb_x < 0 or nb_x > N - 1 or nb_y < 0  or nb_y > M - 1:
+                blue_flag = 1
+            # 벽 만나는경우   
+            elif Arr[nb_x][0][nb_y] == "#":
+                blue_flag = 1
+            # 레드 만나는 경우 
+        if red_flag == 1 and nb_x == r_x and nb_y == r_y:
+            blue_flag = 1
+        if not blue_flag:
+            b_x = nb_x; b_y = nb_y
+        # 블루 만나는 경우 
+        if blue_flag == 1 and nr_x == b_x and nr_y == b_y:
+            red_flag = 1
+        if not red_flag:
+            r_x = nr_x; r_y = nr_y  
+        # 레드- > 구멍
+        if r_x == Hole[0] and r_y == Hole[1]:
+            red_flag = 1
+            r_x = -1
+            r_y = -1
+        elif b_x == Hole[0] and b_y == Hole[1]:
+            blue_flag = 1
+            b_x = -1
+            b_y = -1
+    return [[r_x , r_y],[b_x , b_y]]
+MIN = 1000
+def searchDFS(turn , red_blue):
+    global MIN
+    Red = red_blue[0] 
+    Blue = red_blue[1] 
+    # 턴 초과
+    if turn  > 10:
+        return
+    # 블루 -> 구멍
+    if  Blue[0] == -1:
+        return
+    # 레드- > 구멍
+    if Red[0] == -1:
+        if MIN > turn:
+            MIN = turn
+        return 
+    searchDFS(turn + 1 , action(0,[Red,Blue]) )
+    searchDFS(turn + 1 , action(1,[Red,Blue]) )
+    searchDFS(turn + 1 , action(2,[Red,Blue]) )
+    searchDFS(turn + 1 , action(3,[Red,Blue]) )
+       
+# 메인
+ret = 0
+searchDFS(0, [Red, Blue])
+if MIN == 1000:
+    ret = -1
+else:
+    ret = MIN                        
+print(ret)
